@@ -1,0 +1,6 @@
+- name: Configure Apache vhost
+  hosts: web
+  become: yes
+  roles:
+    - apache_vhost
+

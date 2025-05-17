@@ -1,0 +1,3 @@
+domain: test.local
+web_root: "/var/www/{{ domain }}"
+

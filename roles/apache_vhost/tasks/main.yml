@@ -1,0 +1,43 @@
+- name: Load OS-specific variables
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Install Apache
+  package:
+    name: "{{ apache_package }}"
+    state: present
+
+- name: Create document root
+  file:
+    path: "{{ web_root }}"
+    state: directory
+    owner: "{{ web_user }}"
+    group: "{{ web_user }}"
+    mode: '0755'
+
+- name: Create index.html
+  template:
+    src: index.html.j2
+    dest: "{{ web_root }}/index.html"
+    owner: "{{ web_user }}"
+    group: "{{ web_user }}"
+    mode: '0644'
+
+- name: Create vhost config
+  template:
+    src: vhost.conf.j2
+    dest: "/etc/{{ apache_package }}/sites-available/{{ domain }}.conf"
+  when: ansible_os_family == "Debian"
+
+- name: Enable vhost on Ubuntu
+  command: a2ensite {{ domain }}
+  when: ansible_os_family == "Debian"
+  notify: Reload Apache
+
+- name: Create vhost link on CentOS
+  file:
+    src: "/etc/httpd/sites-available/{{ domain }}.conf"
+    dest: "/etc/httpd/conf.d/{{ domain }}.conf"
+    state: link
+  when: ansible_os_family == "RedHat"
+  notify: Reload Apache
+
